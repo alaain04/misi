@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Dependency, DependencyService } from '@shared/dependency/domain';
+import {
+  Dependency,
+  DependencyData,
+  DependencyService,
+} from '@shared/dependency/domain';
 import { PrismaService } from '@shared/database/prisma.service';
 import { DependencySqlMapper } from './dependency.sql.mapper';
 
@@ -7,12 +11,12 @@ import { DependencySqlMapper } from './dependency.sql.mapper';
 export class DependencySqlService implements DependencyService {
   constructor(private readonly db: PrismaService) {}
 
-  async exists(uuid: string): Promise<boolean> {
-    const job = await this.db.dependency.findUnique({
+  async get(uuid: string): Promise<Dependency> {
+    const dependency = await this.db.dependency.findUnique({
       where: { uuid },
     });
 
-    return !!job;
+    return DependencySqlMapper.toDomain(dependency);
   }
 
   async getJobDependencies(uuid: string): Promise<Dependency[]> {
@@ -21,8 +25,15 @@ export class DependencySqlService implements DependencyService {
       where: { dependencies: { some: { jobUuid: uuid } } },
     });
 
-    return job.dependencies.map((jobDepencency) =>
-      DependencySqlMapper.toDomain(jobDepencency.dependency),
+    return job.dependencies.map((job) =>
+      DependencySqlMapper.toDomain(job.dependency),
     );
+  }
+
+  async update(uuid: string, data: Partial<DependencyData>): Promise<void> {
+    await this.db.dependency.update({
+      where: { uuid: uuid },
+      data,
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { PackageData } from '@apps/api/domain/entities/package.entity';
+import { PackageJsonData } from '@shared/job-tracker/domain/entities/package-json.entities';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class PackageRequestDto {
@@ -21,8 +21,8 @@ export class PackageRequestDto {
   @IsNotEmpty()
   dependencies: Record<string, string>;
 
-  toDomain(): PackageData {
-    return PackageData.build({
+  toDomain(): PackageJsonData {
+    return PackageJsonData.build({
       name: this.name,
       version: this.version,
       description: this.description,

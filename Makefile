@@ -44,4 +44,27 @@ delete: ## Delete the SQS queue
 
 list: ## Listing the SQS queue
 	@echo "Listing SQS queues: $(QUEUE_NAME) at $(QUEUE_URL)..."
-	@$(LIST_QUEUE_CMD)%
+	@$(LIST_QUEUE_CMD)
+
+.PHONY: all create purge_all receive delete list%
+
+compose_up:
+	@docker-compose up -d
+
+compose_down:
+	@docker-compose down
+
+aws_dev:
+	@aws configure set aws_access_key_id test
+	@aws configure set aws_secret_access_key test
+	@aws configure set aws_region us-east-1
+
+dev: compose_down
+dev: compose_up
+dev: aws_dev
+dev: ## Prepare development environment
+	@aws --no-cli-pager --region us-east-1 --endpoint-url=http://localhost:4566 sqs create-queue --queue-name registries-queue | jq -r '.QueueUrl'
+	@aws --no-cli-pager --region us-east-1 --endpoint-url=http://localhost:4566 sqs create-queue --queue-name dependencies-queue | jq -r '.QueueUrl'
+	@aws --no-cli-pager --region us-east-1 --endpoint-url=http://localhost:4566 sqs create-queue --queue-name jobs-queue | jq -r '.QueueUrl'
+
+	@echo "Development environment is up and running"

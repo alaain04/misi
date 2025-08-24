@@ -1,18 +1,22 @@
-import {
-  Dependency,
-  DependencyData,
-} from '@shared/dependency/domain/entities/dependency.entity';
+import { Dependency, DependencyData } from '@shared/dependency';
 import { Job, JobData } from '../entities/job.entity';
+import { JobStatus } from '../entities';
 
 export const JOB_SERVICE = Symbol('JOB_SERVICE');
 
+
 export interface JobService {
-  createWithDependencies(
-    data: JobData,
+  create(data: JobData): Promise<Job>;
+  addDependencies(
+    data: Job,
     dependencies: DependencyData[],
-  ): Promise<Job>;
+  ): Promise<Dependency[]>;
   get(uuid: string): Promise<Job | undefined>;
-  // update(uuid: string, data: Partial<JobData>): Promise<void>;
-  exists(uuid: string): Promise<boolean>;
-  // getDependencies(uuid: string): Promise<Dependency[]>;
+  exists(uuid: string): Promise<string | undefined>;
+  setStatus(uuid: string, status: JobStatus, error?: string): Promise<void>;
+  updateJobDependency(
+    jobUuid: string,
+    dependencyUuid: string,
+    cmd: { status?: string; trace: string; error?: string },
+  ): Promise<void>;
 }

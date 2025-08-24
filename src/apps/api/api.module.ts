@@ -31,4 +31,4 @@ import { JobSqsProducer } from './infrastructure/adapters/process.sqs.producer';
     },
   ],
 })
-export class ApiModule {}
+export class ApiModule { }

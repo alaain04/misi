@@ -1,15 +1,4 @@
-import { APP_MODE } from '@libs/api-utils';
-import { ParseArrayPipe } from '@nestjs/common';
-import { plainToInstance, Transform, Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  Max,
-  Min,
-  validateSync,
-} from 'class-validator';
+import { z } from 'zod';
 
 export enum Environment {
   DEV = 'development',
@@ -18,40 +7,128 @@ export enum Environment {
   TST = 'testing',
 }
 
-export class AppConfig {
-  @IsEnum(Environment)
-  NODE_ENV: Environment;
+type QueuesConfig = {
+  registries: string;
+  dependencies: string;
+  jobs: string;
+};
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  @Max(65535)
-  PORT: number;
+const getQueuesConfig = (): QueuesConfig => {
+  const env = z
+    .object({
+      QUEUE_REGISTRIES: z.string(),
+      QUEUE_DEPENDENCIES: z.string(),
+      QUEUE_JOBS: z.string(),
+    })
+    .parse(process.env);
 
-  @IsNotEmpty()
-  @Transform(({ value }) => value.split(',') as APP_MODE[])
-  APP_MODE: APP_MODE[];
+  return {
+    registries: env.QUEUE_REGISTRIES,
+    dependencies: env.QUEUE_DEPENDENCIES,
+    jobs: env.QUEUE_JOBS,
+  };
+};
 
-  @IsString()
-  @IsNotEmpty()
-  QUEUE_DEPENDENCIES: string;
+type ServerConfig = {
+  port: number;
+  mode: string;
+};
 
-  @IsString()
-  @IsNotEmpty()
-  QUEUE_JOBS: string;
-}
+const getServerConfig = (): ServerConfig => {
+  const env = z
+    .object({
+      SERVER_PORT: z.coerce.number(),
+      SERVER_MODE: z.coerce.string(),
+    })
+    .parse(process.env);
 
-export function validate(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(AppConfig, config, {
-    enableImplicitConversion: true,
-  });
+  return {
+    port: env.SERVER_PORT,
+    mode: env.SERVER_MODE,
+  };
+};
 
-  const errors = validateSync(validatedConfig, {
-    skipMissingProperties: false,
-  });
+type ApiConfig = {
+  limit?: {
+    maxRatePerSec: number;
+  };
+  config: {
+    baseUrl: string;
+    baseUrlExtra?: string;
+    token?: string;
+  };
+};
 
-  if (errors.length > 0) {
-    throw new Error(errors.toString());
-  }
-  return validatedConfig;
-}
+type ApiIntegrationsConfig = {
+  GH: ApiConfig;
+  NPM: ApiConfig;
+};
+
+const getApiIntegrationsConfig = (): ApiIntegrationsConfig => {
+  const env = z
+    .object({
+      GH_MAX_RATE_PER_SEC: z.coerce.number(),
+      GH_BASE_URL: z.string(),
+      GH_TOKEN: z.string(),
+      NPM_BASE_URL: z.string(),
+      NPM_API_BASE_URL: z.string(),
+    })
+    .parse(process.env);
+
+  return {
+    GH: {
+      config: {
+        baseUrl: env.GH_BASE_URL,
+        token: env.GH_TOKEN,
+      },
+      limit: {
+        maxRatePerSec: env.GH_MAX_RATE_PER_SEC,
+      },
+    },
+    NPM: {
+      config: {
+        baseUrl: env.NPM_BASE_URL,
+        baseUrlExtra: env.NPM_API_BASE_URL,
+      },
+      limit: {
+        maxRatePerSec: env.GH_MAX_RATE_PER_SEC,
+      },
+    },
+  };
+};
+
+type AwsConfig = {
+  region: string;
+  endpoint: string;
+  environment: Environment;
+};
+
+const getAwsConfig = (): AwsConfig => {
+  const env = z
+    .object({
+      AWS_REGION: z.string(),
+      AWS_ENDPOINT: z.string(),
+      NODE_ENV: z.nativeEnum(Environment),
+    })
+    .parse(process.env);
+
+  return {
+    region: env.AWS_REGION,
+    endpoint: env.AWS_ENDPOINT,
+    environment: env.NODE_ENV,
+  };
+};
+
+export type AppConfig = {
+  integrations: ApiIntegrationsConfig;
+  queues: QueuesConfig;
+  server: ServerConfig;
+  aws: AwsConfig;
+};
+
+export const appConfig = (): AppConfig => ({
+  integrations: getApiIntegrationsConfig(),
+  queues: getQueuesConfig(),
+  server: getServerConfig(),
+  aws: getAwsConfig(),
+});

@@ -14,7 +14,7 @@ export class JobSqsProducer implements JobProducer {
     private readonly configService: ConfigService<AppConfig>,
     private readonly service: SqsService,
   ) {
-    this.queueName = this.configService.getOrThrow('QUEUE_DEPENDENCIES', {
+    this.queueName = this.configService.getOrThrow('queues.jobs', {
       infer: true,
     });
   }

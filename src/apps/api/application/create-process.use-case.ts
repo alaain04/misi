@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import {
   Job,
   JOB_SERVICE,
@@ -6,30 +6,37 @@ import {
   JobStatus,
   JobService,
 } from '@shared/job-tracker';
-import { DependencyData } from '@shared/dependency';
-import { PackageData } from '../domain/entities/package.entity';
 import { JOB_PRODUCER, JobProducer } from '../domain/ports/process.producer';
+import { PackageJsonData } from '@shared/job-tracker/domain/entities/package-json.entities';
+import { RuntimeError } from '@libs/errors';
 
 export class CreateJobUseCase {
+  private readonly logger = new Logger(CreateJobUseCase.name);
   constructor(
     @Inject(JOB_SERVICE)
     private readonly jobService: JobService,
     @Inject(JOB_PRODUCER)
     private readonly jobProducer: JobProducer,
-  ) {}
+  ) { }
 
-  async execute(data: PackageData): Promise<Job> {
+  async execute(data: PackageJsonData): Promise<Job> {
     const job = JobData.build({
       status: JobStatus.PENDING,
-      packageMetadata: data,
+      packageJson: data,
     });
 
-    const created = await this.jobService.createWithDependencies(
-      job,
-      DependencyData.fromRecord(data.dependencies),
-    );
+    let created: Job;
+    try {
+      created = await this.jobService.create(job);
 
-    this.jobProducer.send(created);
+      await this.jobProducer.send(created);
+    } catch (error) {
+      if (created)
+        await this.jobService.setStatus(created.uuid, JobStatus.FAILED, 'Failed to initialize job: ' + error.message);
+
+      throw new RuntimeError('Failed to initialize job:');
+    }
+
     return created;
   }
 }

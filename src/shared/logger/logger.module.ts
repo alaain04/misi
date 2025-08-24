@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { WinstonLoggerService } from './winston-logger.service';
 
 export const LOGGER = new WinstonLoggerService({
-  logLevel: 'info',
+  logLevel: 'debug',
   httpLogs: true,
   logLevelOverrides: {},
 });

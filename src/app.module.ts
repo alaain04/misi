@@ -7,21 +7,26 @@ import {
   LoggerMiddleware,
   registerWhenAppMode,
 } from '@libs/api-utils';
-import { validate } from './app.config';
 import { PrismaModule } from '@shared/database/prisma.module';
 import { SqsModule } from '@shared/aws/sqs';
 import { ManagerModule } from '@apps/manager/manager.module';
+import { appConfig } from './app.config';
+import { RegistryProcessorModule } from '@apps/registry-processor/registry-processor.module';
+import { RepositoryProcessorModule } from '@apps/repository-processor/repository-processor.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      validate,
+      load: [appConfig],
       isGlobal: true,
+      cache: false,
     }),
     SqsModule.forRoot({ global: true }),
     LoggerModule,
     ...registerWhenAppMode([ApiModule], APP_MODE.APP_API),
     ...registerWhenAppMode([ManagerModule], APP_MODE.APP_MANAGER),
+    ...registerWhenAppMode([RegistryProcessorModule], APP_MODE.APP_REGISTRY_PROCESSOR),
+    ...registerWhenAppMode([RepositoryProcessorModule], APP_MODE.APP_REPOSITORY_PROCESSOR),
     PrismaModule,
   ],
   controllers: [],

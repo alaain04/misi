@@ -3,6 +3,9 @@ import { Job, JobStatus } from '@shared/job-tracker';
 export class JobResponseDto {
   uuid: string;
   status: JobStatus;
+  downloadedFailed: number;
+  downloadedSuccessful: number;
+  totalDependencies: number;
   createdAt: Date;
   updatedAt: Date;
 
@@ -16,6 +19,9 @@ export class JobResponseDto {
     return new JobResponseDto({
       uuid: data.uuid,
       status: data.status,
+      downloadedFailed: data.downloadedFailed ?? 0,
+      downloadedSuccessful: data.downloadedSuccessfully ?? 0,
+      totalDependencies: data.totalDependencies ?? 0,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });

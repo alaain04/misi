@@ -14,7 +14,8 @@ type ConditionalImport = Promise<
 export enum APP_MODE {
   APP_API = 'api',
   APP_MANAGER = 'manager',
-  APP_INGESTOR = 'ingestor',
+  APP_REGISTRY_PROCESSOR = 'registry-processor',
+  APP_REPOSITORY_PROCESSOR = 'repository-processor',
 }
 
 export function registerWhen(

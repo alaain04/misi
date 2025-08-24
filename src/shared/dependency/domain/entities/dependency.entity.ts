@@ -23,4 +23,21 @@ export class Dependency extends BaseEntity<DependencyData> {
   static build(uuid: string, data: JustProps<DependencyData>): Dependency {
     return new Dependency(uuid, data);
   }
+
+  getName(): string {
+    return this.data.name;
+  }
+
+  getVersion(): string {
+    return this.data.version;
+  }
+
+  isValid(): boolean {
+    const valid =
+      !!this.data.name && !!this.data.version;
+    if (!valid) {
+      console.error('Invalid dependency:', this.data);
+    }
+    return valid;
+  }
 }

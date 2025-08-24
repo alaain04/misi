@@ -1,8 +1,20 @@
 version: '3.9'
 services:
-  localstack: 
-    image: localstack/localstack:latest
+  localstack:
+    image: localstack/localstack
+    environment:
+      - SERVICES=sqs,s3
     ports:
       - 4566:4566
-    volumes:
-      - ./scripts/localstack-setup.sh:/etc/localstack/init/ready.d/script.sh
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - '54321:5432'
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "REGISTRIES_METADATA" ADD COLUMN     "repositoryPath" TEXT;

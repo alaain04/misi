@@ -1,8 +1,9 @@
-import { Dependency, Prisma } from '@prisma/client';
+import { Dependency as DependencyModel, Prisma } from '@prisma/client';
 import {
   DependencyData as DependencyDataEntity,
   Dependency as DependencyEntity,
 } from '@shared/dependency/domain/entities/dependency.entity';
+export type DependencyPrismaModel = DependencyModel;
 
 export class DependencySqlMapper {
   static fromDomainToCreate(
@@ -14,7 +15,7 @@ export class DependencySqlMapper {
     }));
   }
 
-  static toDomain(dependency: Dependency): DependencyEntity {
+  static toDomain(dependency: DependencyPrismaModel): DependencyEntity {
     return DependencyEntity.build(dependency.uuid, {
       name: dependency.name,
       version: dependency.version,

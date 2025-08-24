@@ -1,20 +1,16 @@
 import { BaseEntity, JustProps, ValueObject } from '@libs/entity';
 import { JobStatus } from './job-status.enum';
-import { Dependency } from '@shared/dependency';
-
-type PackageData = {
-  name: string;
-  version: string;
-  description?: string;
-  author?: string;
-};
+import { PackageJsonData } from './package-json.entities';
 
 export class JobData extends ValueObject {
   status: JobStatus;
-  packageMetadata: PackageData;
+  packageJson: PackageJsonData;
+  error?: string;
+  totalDependencies?: number;
+  downloadedSuccessfully?: number;
+  downloadedFailed?: number;
   createdAt: Date;
   updatedAt: Date;
-  dependencies: Dependency[];
 
   static build(data: Partial<JustProps<JobData>>): JobData {
     return new JobData(data);
@@ -22,7 +18,7 @@ export class JobData extends ValueObject {
 }
 
 export class Job extends BaseEntity<JobData> {
-  static build(uuid: string, data: JustProps<JobData>): Job {
-    return new Job(uuid, data);
+  static build(uuid: string, data: Partial<JustProps<JobData>>): Job {
+    return new Job(uuid, JobData.build(data));
   }
 }

@@ -15,37 +15,169 @@ enum JobStatus {
 }
 
 model Job {
-  uuid            String          @id @default(uuid())
-  status          JobStatus
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  packageMetadata Json
-  dependencies    JobDependency[]
+  uuid              String          @id @default(uuid())
+  status            JobStatus
+  packageJson       Json
+  dependencies      JobDependency[]
+  error             String?
+  totalDependencies Int?
+  downloadedSuccessfully Int?
+  downloadedFailed Int?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   @@index([uuid, updatedAt], name: "job_uuid_updatedAt_index")
   @@map("JOBS")
 }
 
+enum JobDependencyTrace {
+  REG_METADATA
+  REG_DOWNLOADED
+  REP_METADATA
+  REP_COMMITS
+  REP_ISSUES
+  REP_RELEASES
+  REP_VULNERABILITIES
+}
+
+enum JobDependencyStatus {
+  RUNNING
+  FINISHED
+  FAILED
+}
+
 model JobDependency {
-  job            Job        @relation(fields: [jobUuid], references: [uuid])
+  job            Job                  @relation(fields: [jobUuid], references: [uuid])
   jobUuid        String
-  dependency     Dependency @relation(fields: [dependencyUuid], references: [uuid])
+  dependency     Dependency           @relation(fields: [dependencyUuid], references: [uuid])
   dependencyUuid String
-  createdAt      DateTime   @default(now())
+  trace          JobDependencyTrace[] @default([])
+  status         JobDependencyStatus
+  error          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
   @@id([jobUuid, dependencyUuid])
   @@map("JOB_DEPENDENCIES")
 }
 
 model Dependency {
-  uuid      String          @id @default(uuid())
-  name      String
-  version   String
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  jobs      JobDependency[]
+  uuid                    String                    @id @default(uuid())
+  name                    String
+  version                 String
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  jobs                    JobDependency[]
+  registry                Registry?
+  RepositoryVulnerability RepositoryVulnerability[]
 
   @@unique([name, version])
   @@index([name, version], name: "dependency_name_version_index")
   @@map("DEPENDENCIES")
+}
+
+model Registry {
+  uuid           String      @id @default(uuid())
+  registryId     String
+  dependency     Dependency  @relation(fields: [dependencyUuid], references: [uuid])
+  dependencyUuid String
+  author         Json?
+  repositoryPath String?
+  description    String?
+  keywords       String[]
+  downloads      Int?
+  licenses       String[]
+  maintainers    Int?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  repository     Repository? @relation(fields: [repositoryUuid], references: [uuid])
+  repositoryUuid String?
+
+  @@unique([dependencyUuid])
+  @@map("REGISTRIES_METADATA")
+}
+
+model Repository {
+  uuid                    String                    @id @default(uuid())
+  path                    String                    @unique
+  registries              Registry[]
+  name                    String?
+  fullName                String?
+  url                     String?
+  description             String?
+  size                    Int?
+  topics                  String[]
+  language                String?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  repositoryRelease       RepositoryRelease[]
+  repositoryIssue         RepositoryIssue[]
+  repositoryCommit        RepositoryCommit[]
+  repositoryVulnerability RepositoryVulnerability[]
+
+  @@map("REPOSITORIES_METADATA")
+}
+
+model RepositoryRelease {
+  releaseId      String     @id
+  repository     Repository @relation(fields: [repositoryUuid], references: [uuid])
+  repositoryUuid String
+  tag            String?
+  body           String?
+  publishedAt    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("REPOSITORIES_RELEASES")
+}
+
+model RepositoryIssue {
+  issueId        String     @id
+  repository     Repository @relation(fields: [repositoryUuid], references: [uuid])
+  repositoryUuid String
+  number         Int?
+  title          String?
+  reporter       String?
+  body           String?
+  state          String?
+  locked         Boolean?
+  assignee       Json?
+  comments       Int?
+  reactions      Json?
+  labels         Json[]
+  publishedAt    String?
+  closedAt       DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("REPOSITORIES_ISSUES")
+}
+
+model RepositoryCommit {
+  commitId       String     @id
+  repository     Repository @relation(fields: [repositoryUuid], references: [uuid])
+  repositoryUuid String
+  description    String?
+  commentsCount  Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("REPOSITORIES_COMMITS")
+}
+
+model RepositoryVulnerability {
+  vulnerabilityId String      @id
+  repository      Repository  @relation(fields: [repositoryUuid], references: [uuid])
+  repositoryUuid  String
+  summary         String?
+  description     String?
+  severity        String?
+  vulnerabilities Json[]
+  publishedAt     String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  dependency      Dependency? @relation(fields: [dependencyUuid], references: [uuid])
+  dependencyUuid  String?
+
+  @@map("REPOSITORIES_VULNERABILITIES")
 }
