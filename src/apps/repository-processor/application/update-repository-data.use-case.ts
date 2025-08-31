@@ -7,111 +7,53 @@ import { Repository } from '../domain/entities/repository.entity';
 
 export class UpdateRepositoryDataUseCase {
   private readonly logger = new Logger(UpdateRepositoryDataUseCase.name);
-  private repositoryPath: string;
+  private readonly path: string;
+
   constructor(
     private readonly repositoryApiService: IRepositoryApiService,
     private readonly repositoryDbService: IRepositoryDbService,
-  ) { }
-
-  setRepositoryPath(path: string): void {
-    this.repositoryPath = path;
+    private readonly repository: Repository,
+  ) {
+    this.path = this.repository.getData().path;
   }
 
   async updateMetadata(): Promise<void> {
-    const repository = await this.repositoryDbService.get(this.repositoryPath);
+    const metadata = await this.repositoryApiService.getMetadata(this.path);
 
-    if (!this.needsUpdate(repository)) return;
+    if (!metadata) throw new NotFoundError(`${this.path} not found`);
 
-    const metadata = await this.repositoryApiService.getMetadata(this.repositoryPath);
-
-    if (!metadata) throw new NotFoundError(`${this.repositoryPath} not found`);
-
-    await this.repositoryDbService.save(repository.uuid, this.repositoryPath, metadata);
+    await this.repositoryDbService.save(this.repository.uuid, this.path, metadata);
   }
 
   async updateReleases(): Promise<void> {
-    const repository = await this.repositoryDbService.get(this.repositoryPath);
-
-    if (!repository) {
-      this.logger.warn(`Repository not found: ${this.repositoryPath}`);
-      return;
-    }
-
-    if (!this.needsUpdate(repository)) return;
-
-    const releases = await this.repositoryApiService.getReleases(this.repositoryPath);
+    const releases = await this.repositoryApiService.getReleases(this.path);
 
     if (!releases?.length) return;
 
-    await this.repositoryDbService.saveReleases(repository.uuid, releases);
+    await this.repositoryDbService.saveReleases(this.repository.uuid, releases);
   }
 
   async updateIssues(): Promise<void> {
-    const repository = await this.repositoryDbService.get(this.repositoryPath);
-
-    if (!repository) {
-      this.logger.warn(`Repository not found: ${this.repositoryPath}`);
-      return;
-    }
-
-    if (!this.needsUpdate(repository)) return;
-
-    const issues = await this.repositoryApiService.getIssues(this.repositoryPath);
+    const issues = await this.repositoryApiService.getIssues(this.path);
 
     if (!issues?.length) return;
 
-    await this.repositoryDbService.saveIssues(repository.uuid, issues);
+    await this.repositoryDbService.saveIssues(this.repository.uuid, issues);
   }
 
   async updateCommits(): Promise<void> {
-    const repository = await this.repositoryDbService.get(this.repositoryPath);
-
-    if (!repository) {
-      this.logger.warn(`Repository not found: ${this.repositoryPath}`);
-      return;
-    }
-
-    if (!this.needsUpdate(repository)) return;
-
-    const commits = await this.repositoryApiService.getCommits(this.repositoryPath);
+    const commits = await this.repositoryApiService.getCommits(this.path);
 
     if (!commits?.length) return;
 
-    await this.repositoryDbService.saveCommits(repository.uuid, commits);
+    await this.repositoryDbService.saveCommits(this.repository.uuid, commits);
   }
 
   async updateVulnerabilities(): Promise<void> {
-    const repository = await this.repositoryDbService.get(this.repositoryPath);
-
-    if (!repository) {
-      this.logger.warn(`Repository not found: ${this.repositoryPath}`);
-      return;
-    }
-
-    if (!this.needsUpdate(repository)) return;
-
-    const vulnerabilities =
-      await this.repositoryApiService.getVulnerabilities(this.repositoryPath);
+    const vulnerabilities = await this.repositoryApiService.getVulnerabilities(this.path);
 
     if (!vulnerabilities?.length) return;
 
-    await this.repositoryDbService.saveVulnerabilities(
-      repository.uuid,
-      vulnerabilities,
-    );
-  }
-
-  private needsUpdate(repository: Repository): boolean {
-    const refreshRate = 30;
-    const updatedAt = repository.getData().updatedAt;
-    const name = repository.getData().name;
-
-    if (name && updatedAt && differenceInDays(new Date(), updatedAt) < refreshRate) {
-      this.logger.debug(
-        `Skipping: ${repository.uuid}. Last update at: ${updatedAt.toISOString()}`,
-      );
-      return false;
-    }
-    return true;
+    await this.repositoryDbService.saveVulnerabilities(this.repository.uuid, vulnerabilities);
   }
 }

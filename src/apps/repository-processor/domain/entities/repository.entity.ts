@@ -7,6 +7,8 @@ export class RepositoryVulnerabilityData extends ValueObject {
   severity: string;
   vulnerabilities: object[];
   publishedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   repository: Repository;
 
   static build(
@@ -21,6 +23,8 @@ export class RepositoryReleaseData extends ValueObject {
   tag: string;
   body: string;
   publishedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   repository: Repository;
 
   static build(data: JustProps<RepositoryReleaseData>): RepositoryReleaseData {
@@ -42,6 +46,8 @@ export class RepositoryIssueData extends ValueObject {
   labels: object[];
   publishedAt: string;
   closedAt?: string;
+  createdAt: Date;
+  updatedAt: Date;
   repository: Repository;
 
   static build(
@@ -55,6 +61,8 @@ export class RepositoryCommitData extends ValueObject {
   commitId: string;
   description: string;
   commentsCount: number;
+  createdAt: Date;
+  updatedAt: Date;
   repository: Repository;
 
   static build(

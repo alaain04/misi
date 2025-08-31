@@ -6,7 +6,7 @@ import {
   RepositoryVulnerabilityData,
   RepositoryData,
 } from '@apps/repository-processor/domain/entities/repository.entity';
-import { Prisma, Repository } from '@prisma/client';
+import { Prisma, Repository, RepositoryRelease, RepositoryIssue, RepositoryCommit, RepositoryVulnerability } from '@prisma/client';
 
 export class RepositorySqlMapper {
   static fromDomainToUpsert(
@@ -38,6 +38,13 @@ export class RepositorySqlMapper {
 }
 
 export class RepositoryReleaseSqlMapper {
+  static toDomain(data: RepositoryRelease): Partial<RepositoryReleaseData> {
+    return {
+      repository: { uuid: data.repositoryUuid } as RepositoryEntity,
+      updatedAt: data.updatedAt,
+    };
+  }
+
   static fromDomainToUpsert(
     repositoryUuid: string,
     data: RepositoryReleaseData,
@@ -50,6 +57,13 @@ export class RepositoryReleaseSqlMapper {
 }
 
 export class RepositoryIssueSqlMapper {
+  static toDomain(data: RepositoryIssue): Partial<RepositoryIssueData> {
+    return {
+      repository: { uuid: data.repositoryUuid } as RepositoryEntity,
+      updatedAt: data.updatedAt,
+    };
+  }
+
   static fromDomainToUpsert(
     repositoryUuid: string,
     data: RepositoryIssueData,
@@ -63,6 +77,13 @@ export class RepositoryIssueSqlMapper {
 }
 
 export class RepositoryCommitSqlMapper {
+  static toDomain(data: RepositoryCommit): Partial<RepositoryCommitData> {
+    return {
+      repository: { uuid: data.repositoryUuid } as RepositoryEntity,
+      updatedAt: data.updatedAt,
+    };
+  }
+
   static fromDomainToUpsert(
     repositoryUuid: string,
     data: RepositoryCommitData,
@@ -75,6 +96,13 @@ export class RepositoryCommitSqlMapper {
 }
 
 export class RepositoryVulnerabilitySqlMapper {
+  static toDomain(data: RepositoryVulnerability): Partial<RepositoryVulnerabilityData> {
+    return {
+      repository: { uuid: data.repositoryUuid } as RepositoryEntity,
+      updatedAt: data.updatedAt,
+    };
+  }
+
   static fromDomainToUpsert(
     repositoryUuid: string,
     data: RepositoryVulnerabilityData,

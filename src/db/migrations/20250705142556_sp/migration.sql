@@ -61,7 +61,7 @@ BEGIN
   IF job_total IS NOT NULL THEN
     UPDATE "JOBS"
     SET "status" = (CASE
-                  WHEN total_finalized = job_total THEN 'FINISHED'::"JobStatus"
+                  WHEN total_finalized >= job_total THEN 'FINISHED'::"JobStatus"
                     ELSE 'RUNNING'::"JobStatus"
                   END),
     "downloadedFailed" = total_failed,

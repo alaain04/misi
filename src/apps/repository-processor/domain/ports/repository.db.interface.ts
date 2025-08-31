@@ -1,3 +1,4 @@
+import { JobDependencyTrace } from '@prisma/client';
 import {
   RepositoryCommitData,
   RepositoryIssueData,
@@ -12,6 +13,8 @@ export const REPOSITORY_DB_SERVICE = Symbol('REPOSITORY_DB_SERVICE');
 export interface IRepositoryDbService {
   get(path: string): Promise<Repository>;
   save(uuid: string, path: string, metadata?: RepositoryData): Promise<void>;
+
+  getLastSearch(dependencyUuid: string, trace: JobDependencyTrace): Promise<Date | null>
 
   saveReleases(
     repositoryPath: string,

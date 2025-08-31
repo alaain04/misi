@@ -6,7 +6,6 @@ import { REPOSITORY_API_SERVICE } from './domain/ports/repository.api.interface'
 import RepositoryApiService from './infrastructure/adapters/repository/github.service';
 import { REPOSITORY_DB_SERVICE } from './domain/ports/repository.db.interface';
 import { RepositoryDbService } from './infrastructure/adapters/repository/repository.sql.service';
-import { UpdateRepositoryDataUseCase } from './application/update-repository-data.use-case';
 import { RegistryConsumer } from './infrastructure/adapters/sqs/registry.sqs.consumer';
 
 @Module({
@@ -15,7 +14,6 @@ import { RegistryConsumer } from './infrastructure/adapters/sqs/registry.sqs.con
   providers: [
     RegistryConsumer,
     ProcessRepositoryUseCase,
-    UpdateRepositoryDataUseCase,
     { provide: REPOSITORY_API_SERVICE, useClass: RepositoryApiService },
     { provide: REPOSITORY_DB_SERVICE, useClass: RepositoryDbService },
   ],

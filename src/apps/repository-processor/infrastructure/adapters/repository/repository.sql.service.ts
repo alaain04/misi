@@ -16,10 +16,20 @@ import {
   RepositoryData,
 } from '@apps/repository-processor/domain/entities/repository.entity';
 import { IRepositoryDbService } from '@apps/repository-processor/domain/ports/repository.db.interface';
+import { JobDependencyTrace } from '@prisma/client';
 
 @Injectable()
 export class RepositoryDbService implements IRepositoryDbService {
   constructor(private readonly db: PrismaService) { }
+
+  async getLastSearch(dependencyUuid: string, trace: JobDependencyTrace): Promise<Date | null> {
+    const jobDependency = await this.db.jobDependency.findFirst({
+      where: { dependencyUuid, trace: { has: trace } },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return jobDependency ? jobDependency.updatedAt : null;
+  }
 
   async get(path: string): Promise<Repository | undefined> {
     const res = await this.db.repository.findUnique({
@@ -167,4 +177,6 @@ export class RepositoryDbService implements IRepositoryDbService {
       }
     });
   }
+
+
 }

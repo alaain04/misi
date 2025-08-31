@@ -1,6 +1,6 @@
- 
- 
- 
+
+
+
 import { LoggerService } from '@nestjs/common';
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import * as winston from 'winston';
@@ -62,7 +62,7 @@ export class WinstonLoggerService implements LoggerService {
       logger.error(msg, { context, ...meta });
 
       if (!logger.silent) {
-        console.error(message);
+        // console.error(message);
       }
 
       return;
@@ -70,9 +70,9 @@ export class WinstonLoggerService implements LoggerService {
 
     logger.error(message, { context });
 
-    if (trace && !logger.silent) {
-      console.error(`${trace}\n`);
-    }
+    // if (trace && !logger.silent) {
+    //   console.error(`${trace}\n`);
+    // }
   }
 
   public fatal(message: any, trace?: string, context?: string): any {
